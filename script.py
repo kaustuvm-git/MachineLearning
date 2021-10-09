@@ -9,7 +9,6 @@ import pickle
 import sys
 
 def ldaLearn(X,y):
-
     # Inputs
     # X - a N x d matrix with each row corresponding to a training example
     # y - a N x 1 column vector indicating the labels for each training example
@@ -30,7 +29,6 @@ def ldaLearn(X,y):
     return means,covmat
 
 def qdaLearn(X,y):
-    
     # Inputs
     # X - a N x d matrix with each row corresponding to a training example
     # y - a N x 1 column vector indicating the labels for each training example
@@ -53,7 +51,6 @@ def qdaLearn(X,y):
     return means,covmats
 
 def ldaTest(means,covmat,Xtest,ytest):
-
     # Inputs
     # means, covmat - parameters of the LDA model
     # Xtest - a N x d matrix with each row corresponding to a test example
@@ -87,7 +84,6 @@ def ldaTest(means,covmat,Xtest,ytest):
     return acc,ypred
 
 def qdaTest(means,covmats,Xtest,ytest):
-    #Ieshaan
     # Inputs
     # means, covmats - parameters of the QDA model
     # Xtest - a N x d matrix with each row corresponding to a test example
@@ -123,7 +119,6 @@ def qdaTest(means,covmats,Xtest,ytest):
     return acc,ypred
 
 def learnOLERegression(X,y):
-
     # Inputs:                                                         
     # X = N x d 
     # y = N x 1                                                               
@@ -141,7 +136,6 @@ def learnOLERegression(X,y):
     return w
 
 def learnRidgeRegression(X,y,lambd):
-
     # Inputs:
     # X = N x d                                                               
     # y = N x 1 
@@ -161,7 +155,6 @@ def learnRidgeRegression(X,y,lambd):
     return w
 
 def testOLERegression(w,Xtest,ytest):
-
     # Inputs:
     # w = d x 1
     # Xtest = N x d
@@ -176,7 +169,6 @@ def testOLERegression(w,Xtest,ytest):
     return mse
 
 def regressionObjVal(w, X, y, lambd):
-    
     # compute squared error (scalar) and gradient of squared error with respect
     # to w (vector) for the given data X and y and the regularization parameter
     # lambda                                                                  
@@ -194,7 +186,6 @@ def regressionObjVal(w, X, y, lambd):
     return error, error_grad
 
 def mapNonLinear(x,p):
-    #Ashish
     # Inputs:                                                                  
     # x - a single column vector (N x 1)                                       
     # p - integer (>= 0)                                                       
