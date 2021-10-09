@@ -9,7 +9,7 @@ import pickle
 import sys
 
 def ldaLearn(X,y):
-    #Ashish
+
     # Inputs
     # X - a N x d matrix with each row corresponding to a training example
     # y - a N x 1 column vector indicating the labels for each training example
@@ -19,10 +19,18 @@ def ldaLearn(X,y):
     # covmat - A single d x d learnt covariance matrix 
     
     # IMPLEMENT THIS METHOD 
+    
+    a = np.unique(y)
+    means = np.zeros((len(a), X.shape[1]))
+    for i in a:
+        x1 = X[np.where(y == i)[0]]
+        means[int(i)-1] = x1.mean(axis=0)
+    covmat = np.cov(X.T)
+
     return means,covmat
 
 def qdaLearn(X,y):
-    #Ieshaan
+    
     # Inputs
     # X - a N x d matrix with each row corresponding to a training example
     # y - a N x 1 column vector indicating the labels for each training example
@@ -32,10 +40,20 @@ def qdaLearn(X,y):
     # covmats - A list of k d x d learnt covariance matrices for each of the k classes
     
     # IMPLEMENT THIS METHOD
+    
+    a = np.unique(y)
+    means = np.zeros([a.shape[0],X.shape[1]])
+    covmats = []
+
+    for i in range(a.shape[0]):
+        m = np.mean(X[np.where(y == a[i])[0],],axis=0)
+        means[i,] = m
+        covmats.append(np.cov(np.transpose(X[np.where(y == a[i])[0],])))
+        
     return means,covmats
 
 def ldaTest(means,covmat,Xtest,ytest):
-    #Ashish
+
     # Inputs
     # means, covmat - parameters of the LDA model
     # Xtest - a N x d matrix with each row corresponding to a test example
@@ -45,6 +63,27 @@ def ldaTest(means,covmat,Xtest,ytest):
     # ypred - N x 1 column vector indicating the predicted labels
 
     # IMPLEMENT THIS METHOD
+    
+    g = 1 / np.sqrt((2*np.pi**means.shape[1])*det(covmat))
+    ll = np.zeros((Xtest.shape[0], means.shape[0]))
+    for i in range(Xtest.shape[0]):
+        for h in range(means.shape[0]):
+            b = Xtest[i, :] - means[int(h) - 1]
+            t = (-1/2)*np.dot(np.dot(b.T, inv(covmat)), b)
+            ll[i,int(h)-1] = g * np.e**t 
+            
+    ypred = []
+    for row in ll:
+        ypred.append(list(row).index(max(list(row)))+1)
+    
+    acc = 0
+    for k in range(len(ypred)):
+        if ypred[k] == ytest[k]:
+            acc += 1
+    acc = acc / len(ypred)
+    ytest=ytest.flatten()
+    ypred = np.array(ypred)
+    
     return acc,ypred
 
 def qdaTest(means,covmats,Xtest,ytest):
@@ -58,10 +97,33 @@ def qdaTest(means,covmats,Xtest,ytest):
     # ypred - N x 1 column vector indicating the predicted labels
 
     # IMPLEMENT THIS METHOD
+    
+    a = np.unique(ytest)
+    ll = np.zeros((Xtest.shape[0], means.shape[0]))
+    for i in range(Xtest.shape[0]):
+        for h in range(means.shape[0]):
+            index = int(h)-1
+            b = Xtest[i, :] - means[index]
+            t = (-1/2)*np.dot(np.dot(b.T, inv(covmats[index])), b)
+            g = 1 / np.sqrt((2*np.pi**means.shape[1])*det(covmats[index]))
+            ll[i,index] = g * np.e**t 
+            
+    ypred = []
+    for row in ll:
+        ypred.append(list(row).index(max(list(row)))+1)
+    
+    acc = 0
+    for k in range(len(ypred)):
+        if ypred[k] == ytest[k]:
+            acc += 1
+    acc = acc / len(ypred)
+    ytest=ytest.flatten()
+    ypred = np.array(ypred)
+    
     return acc,ypred
 
 def learnOLERegression(X,y):
-    #Kaustuv
+
     # Inputs:                                                         
     # X = N x d 
     # y = N x 1                                                               
@@ -70,25 +132,16 @@ def learnOLERegression(X,y):
 	
     # IMPLEMENT THIS METHOD 
     
-    #Adding an extra column
-    col = np.ones(X.shape[0])
-    X = np.column_stack((col, X))
-    
-    alpha = 1
-    itr = 100000
-    m = y.size
-    w = np.zeros((65,1))
-    
-    for i in range(itr):
-        y_pred = np.dot(X, w)
-        cost = (1/(2*m))*np.sum(np.square(y_pred-y))
-        dw = (1/m)*np.dot(X.T, y_pred-y)
-        w = w - alpha*dw
+    x_T = np.transpose(X)
+    dot_x = np.dot(x_T , X)
+    dot_y = np.dot(x_T , y)
+    inverse_mtr = np.linalg.inv(dot_x) 
+    w = np.dot(inverse_mtr, dot_y)
 
     return w
 
 def learnRidgeRegression(X,y,lambd):
-    #Ieshaan
+
     # Inputs:
     # X = N x d                                                               
     # y = N x 1 
@@ -97,10 +150,18 @@ def learnRidgeRegression(X,y,lambd):
     # w = d x 1                                                                
 
     # IMPLEMENT THIS METHOD
+    
+    N, d = np.shape(X)   
+    dot_X = np.dot(X.T,X)
+    lambd_eye = lambd*np.eye(d)
+    sum_ = np.linalg.inv(dot_X + lambd_eye)
+    dot_y = np.dot(X.T, y)
+    w = np.dot(sum_, dot_y)
+    
     return w
 
 def testOLERegression(w,Xtest,ytest):
-    #Kaustuv
+
     # Inputs:
     # w = d x 1
     # Xtest = N x d
@@ -110,22 +171,26 @@ def testOLERegression(w,Xtest,ytest):
     
     # IMPLEMENT THIS METHOD
     
-    #Adding an extra column
-    col = np.ones(X.shape[0])
-    X = np.column_stack((col, X))
-
-    m = ytest.size
-    mse = (1/m)*np.sum(np.square(ytest - np.dot(Xtest,w)))
+    mse = np.divide(np.sum(np.square(np.subtract(ytest,np.dot(Xtest,w)))),Xtest.shape[0])
 
     return mse
 
 def regressionObjVal(w, X, y, lambd):
-    #Kaustuv
+    
     # compute squared error (scalar) and gradient of squared error with respect
     # to w (vector) for the given data X and y and the regularization parameter
     # lambda                                                                  
 
-    # IMPLEMENT THIS METHOD                                             
+    # IMPLEMENT THIS METHOD        
+    
+    N = X.shape[0]
+    w = np.mat(w).T
+    y_Xdw = y - np.dot(X, w)                      
+    error = 0.001  * ( np.dot(y_Xdw.T, y_Xdw) + (lambd * np.dot(w.T, w)) )
+    learning_rate =  0.0005
+    error_grad =  X.T.dot(X.dot(w) - y) * learning_rate
+    error_grad = np.ndarray.flatten(np.array(error_grad))
+    
     return error, error_grad
 
 def mapNonLinear(x,p):
@@ -137,6 +202,11 @@ def mapNonLinear(x,p):
     # Xp - (N x (p+1)) 
 	
     # IMPLEMENT THIS METHOD
+    
+    Xd = np.ones((x.shape[0],p+1))
+    for i in range(1, p+1):
+        Xd[:, i] = pow(x,i)
+        
     return Xp
 
 # Main script
@@ -253,7 +323,7 @@ plt.show()
 
 # Problem 5
 pmax = 7
-lambda_opt = 0 # REPLACE THIS WITH lambda_opt estimated from Problem 3
+lambda_opt = lambdas[np.argmin(mses3)] # REPLACE THIS WITH lambda_opt estimated from Problem 3
 mses5_train = np.zeros((pmax,2))
 mses5 = np.zeros((pmax,2))
 for p in range(pmax):
